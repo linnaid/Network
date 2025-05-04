@@ -1,0 +1,7 @@
+日志等级：
+1.DEBUG测试
+2.INFO常规消息
+3.WARING告警消息
+4.ERROR错误消息
+5.FATAL致命消息
+
