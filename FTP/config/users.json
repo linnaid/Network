@@ -13,5 +13,10 @@
         "password": "0303",
         "home": "/home/linnaid/Task/Network/FTP",
         "mode": "rw"
+    },
+    "dipper":{
+        "password": "aboy101",
+        "home": "/home/linnaid/Task/Network/FTP",
+        "mode": "rw"
     }
 }
