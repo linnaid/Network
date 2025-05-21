@@ -60,29 +60,44 @@ void FTPClient::start()
     {
         a = Send(_sockfd);
         //std::cout << "www" << std::endl;
+        if(strncmp(buf.data(), "QUIT", 4) == 0)
+        {
+            break;
+        }
         if(_send == 1)
         {
-            //std::cout << "sss" << std::endl;
+            // std::cout << "sss" << std::endl;
             b = Recive();
-        
+            
         }
         if(b == true)
-        Decide();
+        Decide(b);
     }
 
 }
 
-void FTPClient::Decide()
+void FTPClient::Decide(bool b)
 {
-    //std::cout << arr.data() << std::endl;
+    // std::cout << arr.data() << std::endl;
     int a = strlen(arr.data());
-    std::cout << a << std::endl;
+    // std::cout << a << std::endl;
     if(strncmp(arr.data(), "227", 3) == 0)
     {
         // std::cout << arr.data() << std::endl;
         Trun(a);
     }
-    if(strncmp(buf.data(), "LIST", 4) == 0)
+    else if(strncmp(arr.data(), "530 ", 4) == 0)
+    {
+        std::cout << arr.data() << std::endl;
+        close(link_sock);
+        _send = 0;
+        b = false;
+    }
+    else if(strncmp(arr.data(), "230 ", 4) == 0)
+    {
+        std::cout << arr.data() << std::endl;
+    }
+    else if(strncmp(buf.data(), "LIST", 4) == 0)
     {
         List();
         Recive();
@@ -91,19 +106,92 @@ void FTPClient::Decide()
             std::cout << std::endl <<"LIST Command Completed" << std::endl;
         }
     }
+    else if(strncmp(arr.data(), "150 Opening BINARY mode data connection...", 42) == 0)
+    {
+        Retr();
+        if(Recive())
+        {
+            if(strcmp(arr.data(), "226 Transfer complete.\r\n") == 0)
+            {
+                std::cout << "yes" <<std::endl;
+                _send = 0;
+            }
+        }
+    }
     else if(strncmp(arr.data(), "150 Opening BINARY mode data connection for filename.txt.", 44) == 0)
     {
-        std::cout << "sse" <<std::endl;
+        // std::cout << "sse" <<std::endl;
         Stor();
+        if(n == -1)
+        {
+            n = 0;
+            return;
+        }
         if(Recive())
         {
             if(strcmp(arr.data(), "226 Transfer complete\r\n") == 0)
             {
-                close(link_sock);
+                // close(link_sock);
                 std::cout << "yes" << std::endl;
+                _send = 0;
             }
         }
     }
+    else if(strncmp(arr.data(), "500", 3) == 0)
+    {
+        b = false;
+    }
+    else if(strncmp(arr.data(), "550", 3) == 0)
+    {
+        std::cout << "OPEN_FILE ERROR" << std::endl;
+        b = false;
+    }
+}
+
+std::ofstream FTPClient::File_creat(char* buf)
+{
+    int len = strlen(buf);
+    char fd[MAX_NUM];
+    strncpy(fd, buf + 5, sizeof(fd) - 1);
+    fd[len - 5] = '\0';
+    // std::cout << fd << std::endl;
+    std::filesystem::path fdpath(fd);
+    std::string fdname = fdpath.filename().string();
+    std::ofstream open_file(fdname, std::ios::binary);
+    if(!open_file)
+    {
+        perror("OPEN_file Error");
+    }
+    return open_file;
+}
+
+void FTPClient::Retr()
+{
+    std::ofstream file = File_creat(buf.data());
+    if(!file)
+    {
+        perror("OPEN_FILE ERROR");
+        close(link_sock);
+    }
+    while(1)
+    {
+        char re[MAX_NUM];
+        ssize_t k = recv(link_sock, re, sizeof(re) - 1, 0);
+        if(k < 0)
+        {
+            perror("RETR_RECIVE ERROR");
+            break;
+        }
+        else if(k == 0)
+        {
+            std::cout << "Server closed connection." << std::endl;
+            break;
+        }
+        // std::cout << re << std::endl;
+        file.write(re, k);
+    }
+    // std::cout << "lll" << std::endl;
+    close(link_sock);
 }
 
 void FTPClient::Stor()
@@ -117,6 +205,7 @@ void FTPClient::Stor()
             if(!file)
             {
                 perror("Failed to open file");
+                n = -1;
                 return;
             }
             ass.clear();
@@ -124,18 +213,21 @@ void FTPClient::Stor()
             while(file)
             {
                 file.read(ass.data(), ass.size());
+                // std::cout << ass.data() << std::endl;
                 std::streamsize size = file.gcount();
                 if(size > 0)
                 {
-                    ssize_t sen = send(link_sock, ass.data(), ass.size(), 0);
+                    ssize_t sen = send(link_sock, ass.data(), size, 0);
+                    // std::cout << sen << std::endl;
                     if(sen < 0)
                     {
                         perror("File_Send Error");
                         break;
                     }
                 }
-                std::cout << "sss" << std::endl;
+                // std::cout << "sss" << std::endl;
             }
+            close(link_sock);
             break;
         }
     }
@@ -233,8 +325,8 @@ void FTPClient::Trun(int a)
     }
     //std::cout << ass << std::endl;
     int p = p1 * 256 + p2;
-    //std::cout << p << std::endl;
-    int link_sock = socket(AF_INET, SOCK_STREAM, 0);
+    // std::cout << ass.data() << std::endl;
+    link_sock = socket(AF_INET, SOCK_STREAM, 0);
     if(link_sock < 0)
     {
         perror("Link_Socket Error");
@@ -281,15 +373,7 @@ bool FTPClient::Send(int sockfd)
         perror("Send_string Error");
         return false;
     }
-    if(send(sockfd, "\r\n", 2, 0) < 0)
-    {
-        perror("Send \r\n Error");
-        return false;
-    }
-    if(strcmp(buf.data(), "QUIT") == 0)
-    {
-        return false;
-    }
+   
     else if(strcmp(buf.data(), "PASV") == 0)
     {
         //std::cout << "111" << std::endl;
