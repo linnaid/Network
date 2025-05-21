@@ -6,6 +6,8 @@
 #include <vector>
 #include <thread>
 #include <arpa/inet.h>
+#include <fstream>
+#include <filesystem>
 
 
 class FTPClient
@@ -19,8 +21,12 @@ private:
     bool Send(int sockfd);
     void Connect(int sockfd, sockaddr_in cli);
     bool Recive();
-    void Decide();
+    void Decide(bool b);
     void Trun(int a);
+    void List();
+    void Stor();
+    void Retr();
+    std::ofstream File_creat(char* buf);
 
     int _sockfd;
     int link_sock;
