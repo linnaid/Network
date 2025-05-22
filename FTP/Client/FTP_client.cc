@@ -79,12 +79,14 @@ void FTPClient::start()
 void FTPClient::Decide(bool b)
 {
     // std::cout << arr.data() << std::endl;
+    std::string e = "error\0";
     int a = strlen(arr.data());
     // std::cout << a << std::endl;
     if(strncmp(arr.data(), "227", 3) == 0)
     {
         // std::cout << arr.data() << std::endl;
         Trun(a);
+        // arr.assign(e.begin(), e.end());
     }
     else if(strncmp(arr.data(), "530 ", 4) == 0)
     {
@@ -156,8 +158,10 @@ std::ofstream FTPClient::File_creat(char* buf)
     fd[len - 5] = '\0';
     // std::cout << fd << std::endl;
     std::filesystem::path fdpath(fd);
+    std::string path_ = "/home/linnaid/Task/Network/FTP/Client";
     std::string fdname = fdpath.filename().string();
-    std::ofstream open_file(fdname, std::ios::binary);
+    std::filesystem::path f_path = std::filesystem::path(path_) / fdname;
+    std::ofstream open_file(f_path, std::ios::binary);
     if(!open_file)
     {
         perror("OPEN_file Error");
@@ -336,7 +340,7 @@ void FTPClient::Trun(int a)
     link.sin_port = htons(p);
     link.sin_family = AF_INET;
     inet_pton(AF_INET, ass.data(), &link.sin_addr.s_addr);
-    Connect(link_sock, link);
+     Connect(link_sock, link);
     std::cout << "success" << std::endl;
 }
 
