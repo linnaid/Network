@@ -17,7 +17,6 @@
 #define MAX_NUM 1024
 
 int t = -1;
-int timee = 3000;
 
 struct User{
     std::string username = "";
@@ -42,7 +41,6 @@ private:
     void Send_P(int cli_fd, int *Data_fd);
     void Task(int cli_fd);
     int make_nonblocking(int sockfd);
-    int make_blocking(int sockfd);
     int Recive(int clifd, char* buf);
     bool CommandHandler(char* buf, int cli_fd, int *Data_fd);
     std::vector<User> LoadUsers(const std::string& path);
