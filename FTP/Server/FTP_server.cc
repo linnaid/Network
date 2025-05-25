@@ -15,8 +15,8 @@ FTPServer::~FTPServer()
     close(sockfd);
     if(sock_lis >= 0)
     close(sock_lis);
-    if(_epoll >= 0)
-    close(_epoll);
+    if(main_epoll >= 0)
+    close(main_epoll);
 }
 
 void FTPServer::start()
@@ -26,18 +26,18 @@ void FTPServer::start()
         perror("Make_Nonblocking ERROR");
         exit(1);
     }
-    _epoll = epoll_create1(0);
+    main_epoll = epoll_create1(0);
     struct epoll_event ev{};
     ev.data.fd = sockfd;
     ev.events = EPOLLIN;
-    if(epoll_ctl(_epoll, EPOLL_CTL_ADD, sockfd, &ev) < 0)
+    if(epoll_ctl(main_epoll, EPOLL_CTL_ADD, sockfd, &ev) < 0)
     {
         perror("epoll_ctl ERROR");
         exit(1);
     }
     while(true)
     {
-        int n = epoll_wait(_epoll, _events, SUM, _time);
+        int n = epoll_wait(main_epoll, _events, SUM, _time);
         for(int i = 0; i < n; i++)
         {
             int fd = _events[i].data.fd;
@@ -60,12 +60,11 @@ void FTPServer::start()
                 event.data.fd = cli_fd;
                 event.events = EPOLLIN;
                 make_nonblocking(cli_fd);
-                epoll_ctl(_epoll, EPOLL_CTL_ADD, cli_fd, &event);
+                epoll_ctl(main_epoll, EPOLL_CTL_ADD, cli_fd, &event);
             }
             else
             {
-                // Task(_events[i].data.fd);
-                Threads.push_back(std::thread(&FTPServer::Task, this, fd));
+                
             }
         }
     }
