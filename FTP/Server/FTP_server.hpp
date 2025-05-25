@@ -9,9 +9,12 @@
 #include <mutex>
 #include <arpa/inet.h>
 #include <fstream>
+#include <queue>
 #include <filesystem>
 #include <fcntl.h>
 #include <sys/epoll.h>
+#include <sys/stat.h>
+#include <linux/stat.h>
 #include "json.hpp"
 
 #define MAX_NUM 1024
@@ -23,6 +26,15 @@ struct User{
     std::string password = "";
 };
 
+struct task{
+    std::thread _thread;
+    std::mutex _mutex;
+    int _epoll;
+    std::queue<int> _cli;
+
+    void TASK();
+};
+
 class FTPServer
 {
 public:
@@ -30,8 +42,8 @@ public:
     :_port(port),
     sockfd(t),
     sock_lis(t),
-    _time(timee),
-    _epoll(t)
+    _time(t),
+    main_epoll(t)
     {}
     void start();
     void init();
@@ -54,12 +66,13 @@ private:
     int sockfd;
     int sock_lis;
     int _time;
-    int _epoll;
+    int main_epoll;
     struct epoll_event _events[MAX_NUM];
     uint16_t _port;
     sockaddr_in _fd;
     std::string ass;
-    std::vector<std::thread> Threads;
+    std::vector<task> Tasks;
+    int task_num = 0;
     std::vector<User> users;
     User user;
     std::mutex _lock;
