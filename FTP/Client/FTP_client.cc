@@ -1,8 +1,6 @@
 #include "FTP_client.hpp"
 
-#define IP "127.0.0.1"
-#define PORT 2100
-#define MAX_NUM 1024
+
 
 int t = -1;
 std::vector<char> buf(MAX_NUM);
@@ -372,6 +370,7 @@ bool FTPClient::Send(int sockfd)
 {
 
     std::cin.getline(buf.data(), MAX_NUM);
+    buf.insert(buf.end(), {'\r', '\n'});
     if(send(sockfd, buf.data(), strlen(buf.data()), 0) < 0)
     {
         perror("Send_string Error");
@@ -387,10 +386,3 @@ bool FTPClient::Send(int sockfd)
     return true;
 }
 
-int main()
-{
-    FTPClient Client(PORT);
-    Client.init();
-    Client.start();
-    return 0;
-}
