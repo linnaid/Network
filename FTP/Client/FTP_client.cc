@@ -82,7 +82,7 @@ void FTPClient::Decide(bool b)
     // std::cout << a << std::endl;
     if(strncmp(arr.data(), "227", 3) == 0)
     {
-        // std::cout << arr.data() << std::endl;
+        std::cout << arr.data() << std::endl;
         Trun(a);
         // arr.assign(e.begin(), e.end());
     }
@@ -120,7 +120,7 @@ void FTPClient::Decide(bool b)
     }
     else if(strncmp(arr.data(), "150 Opening BINARY mode data connection for filename.txt.", 44) == 0)
     {
-        // std::cout << "sse" <<std::endl;
+        std::cout << arr.data() <<std::endl;
         Stor();
         if(n == -1)
         {
@@ -139,6 +139,7 @@ void FTPClient::Decide(bool b)
     }
     else if(strncmp(arr.data(), "500", 3) == 0)
     {
+        std::cout << arr.data() <<std::endl;
         b = false;
     }
     else if(strncmp(arr.data(), "550", 3) == 0)
@@ -370,14 +371,14 @@ bool FTPClient::Send(int sockfd)
 {
 
     std::cin.getline(buf.data(), MAX_NUM);
-    buf.insert(buf.end(), {'\r', '\n'});
+    // buf.insert(buf.end(), {'\r', '\n'});
     if(send(sockfd, buf.data(), strlen(buf.data()), 0) < 0)
     {
         perror("Send_string Error");
         return false;
     }
    
-    else if(strcmp(buf.data(), "PASV") == 0)
+    else if(strncmp(buf.data(), "USER", 4) == 0)
     {
         //std::cout << "111" << std::endl;
         _send = 1;

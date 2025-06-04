@@ -9,6 +9,9 @@
 #include <fstream>
 #include <filesystem>
 
+#define IP "127.0.0.1"
+#define PORT 2100
+#define MAX_NUM 1024
 
 class FTPClient
 {
