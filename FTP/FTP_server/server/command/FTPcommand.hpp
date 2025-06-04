@@ -1,8 +1,10 @@
 #pragma once
 
-#include "main.hpp"
-#include "FTPconnection.hpp"
+#include "include.hpp"
+#include "../connect/FTPconnection.hpp"
 // #include "json.hpp"
+
+class FTPconnect;
 
 class command{
 public:
