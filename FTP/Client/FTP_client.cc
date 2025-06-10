@@ -111,7 +111,7 @@ void FTPClient::Decide(bool b)
         Retr();
         if(Recive())
         {
-            if(strcmp(arr.data(), "226 Transfer complete.\r\n") == 0)
+            if(strncmp(arr.data(), "226 Transfer complete.", 16) == 0)
             {
                 std::cout << "yes" <<std::endl;
                 _send = 0;
@@ -129,7 +129,7 @@ void FTPClient::Decide(bool b)
         }
         if(Recive())
         {
-            if(strcmp(arr.data(), "226 Transfer complete\r\n") == 0)
+            if(strncmp(arr.data(), "226 Transfer complete", 16) == 0)
             {
                 // close(link_sock);
                 std::cout << "yes" << std::endl;
@@ -187,11 +187,11 @@ void FTPClient::Retr()
         }
         else if(k == 0)
         {
-            std::cout << "Server closed connection." << std::endl;
+            // std::cout << "Server closed connection." << std::endl;
             break;
         }
         // std::cout << re << std::endl;
-        file.write(re, k);
+        else file.write(re, k);
     }
     // std::cout << "lll" << std::endl;
     close(link_sock);
@@ -203,7 +203,9 @@ void FTPClient::Stor()
     {
         if(buf[i] == ' ')
         {
+            // std::cout << buf.data() << std::endl;
             ass.assign(buf.begin() + 5, buf.end());
+            std::cout << "Path to open: [" << ass.data() << "]" << std::endl;
             std::ifstream file(ass.data(), std::ios::binary);
             if(!file)
             {
@@ -221,7 +223,7 @@ void FTPClient::Stor()
                 if(size > 0)
                 {
                     ssize_t sen = send(link_sock, ass.data(), size, 0);
-                    // std::cout << sen << std::endl;
+                    std::cout << sen << std::endl;
                     if(sen < 0)
                     {
                         perror("File_Send Error");
@@ -369,21 +371,31 @@ void FTPClient::Connect(int sockfd, sockaddr_in cli)
 
 bool FTPClient::Send(int sockfd)
 {
-
+    buf.clear();
+    buf.resize(MAX_NUM);
     std::cin.getline(buf.data(), MAX_NUM);
+    int len = strlen(buf.data());
+    buf.resize(len);
+    buf.push_back('\r');
+    buf.push_back('\n');
+    // std::string ass = std::string(buf.data()) + "\r\n";
     // buf.insert(buf.end(), {'\r', '\n'});
+    // std::cout << buf.data() << std::endl;
     if(send(sockfd, buf.data(), strlen(buf.data()), 0) < 0)
     {
         perror("Send_string Error");
         return false;
     }
-   
     else if(strncmp(buf.data(), "USER", 4) == 0)
     {
         //std::cout << "111" << std::endl;
+        buf.pop_back();
+        buf.pop_back();
         _send = 1;
         return true;
     }
+    buf.pop_back();
+    buf.pop_back();
     return true;
 }
 
