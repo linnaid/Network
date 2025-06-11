@@ -36,9 +36,17 @@ void Dataconnect::send_passive(const int& cli_fd, FTPconnect& conn)
 
 void Dataconnect::accept_data()
 {
-    data_fd = accept(listen_pasv, nullptr, nullptr);
-//     if(data_fd < 0)
-//     perror("ACCEPT_DATA ERROR");
+    while(1){
+        data_fd = accept(listen_pasv, nullptr, nullptr);
+        if(data_fd < 0){
+            if(data_fd == EAGAIN || data_fd == EWOULDBLOCK)
+            continue;
+            // else
+            // perror("ACCEPT_DATA ERROR");
+        }
+        else
+        break;
+    }
     std::cout << "PASV Openning" << std::endl;
     if(make_nonblocking(data_fd) == -1){
         perror("DATA_FD MAKE_NONBLOCK ERROR");
@@ -48,27 +56,33 @@ void Dataconnect::accept_data()
 
 void Dataconnect::send_file(const std::string& path, FTPconnect& conn)
 {
+    // std::cout << "111" << std::endl;
     std::ifstream file(path, std::ios::binary);
     if(!file){
         perror("OPEN_FILE ERROR");
         conn.send_response("550 File not found.");
+        return;
     }
     char test[1024];
     conn.send_response("150 Opening BINARY mode data connection...");
     while(file)
     {
+        std::memset(test, 0, sizeof(test));
         file.read(test, sizeof(test));
+        // std::cout << test << std::endl;
         std::streamsize size = file.gcount();
         if(size > 0)
         {
-            ssize_t len = send(listen_pasv, test, size, 0);
+            // std::cout << "len error" << std::endl;
+            ssize_t len = send(data_fd, test, size, 0);
+            // std::cout << "len = " << len << std::endl;
             if(len < 0){
-                // perror("SEND ERROR");
+                perror("SEND ERROR");
                 break;
             }
         }
     }
-    file.close();
+    // file.close();
     Close();
     conn.send_response("226 Transfer complete.");
 }
