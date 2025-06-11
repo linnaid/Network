@@ -18,7 +18,7 @@ class FTPconnect{
 public:
     FTPconnect(int cli_fd);
     ~FTPconnect()=default;
-    void process_input(const char* buf);
+    void process_input(const char* buf, int len);
     bool is_login_in(const std::string& name, const std::string& pass);
     void send_response(std::string test) const;
     void Close();
