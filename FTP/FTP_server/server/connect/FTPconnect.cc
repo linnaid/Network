@@ -10,21 +10,29 @@ _pasv(false),
 current_dir("/home/linnaid/Task/Network/FTP/FTP_server")
 {}
 
-void FTPconnect::process_input(const char* buf)
+void FTPconnect::process_input(const char* buf, int len)
 {
-    std::string line = buf;
+    std::string line(buf, len);
+    // std::cout << "len = " << len << "\n";
+    // for (int i = 0; i < len; ++i) {
+    //     std::cout << "char[" << i << "] = '" << (isprint(buf[i]) ? buf[i] : '.') << "' (ASCII: " << static_cast<int>(buf[i]) << ")\n";
+    // }
+
     size_t start = 0;
     std::lock_guard<std::mutex> lock(comd_mutex);
-    std::cout << line << std::endl;
+    // std::cout << buf << std::endl;
     comds[control_fd] = std::make_shared<command>();
+    // std::cout << "cmd_line" << std::endl;
     while(true)
     {
         size_t l = line.find("\r\n", start);
+        // std::cout << l << std::endl;
         if(l == std::string::npos) break;
+        // std::cout << l << std::endl;
         if(l > start)
         {
             std::string cmd_line = line.substr(start, l - start);
-            std::cout << "cmd_line" << std::endl;
+            // std::cout << cmd_line << std::endl;
             handle_command(cmd_line);
         }
         start = l + 2;
@@ -40,7 +48,7 @@ void FTPconnect::handle_command(const std::string& cmd_line)
     }
     auto comd = it->second;
     if(strncmp(cmd_line.c_str(), "PASV", 4) == 0 && login){
-        std::cout << "pasv_wait" << std::endl;
+        // std::cout << "pasv_wait" << std::endl;
         _pasv = set_pasv_conn();
         return;
     }
@@ -49,6 +57,10 @@ void FTPconnect::handle_command(const std::string& cmd_line)
         return;
     }
     else if(strncmp(cmd_line.c_str(), "PASS", 4) == 0){
+        comd->cmd_execute(*this, cmd_line);
+        return;
+    }
+    else if(strncmp(cmd_line.c_str(), "QUIT", 4) == 0){
         comd->cmd_execute(*this, cmd_line);
         return;
     }
@@ -129,6 +141,7 @@ bool FTPconnect::set_pasv_conn()
     data_conn = new Dataconnect();
 
     data_conn->send_passive(control_fd, *this);
+    data_conn->accept_data();
     return true;
 }
 
