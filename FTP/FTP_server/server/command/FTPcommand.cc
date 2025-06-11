@@ -9,6 +9,7 @@ void command::cmd_execute(FTPconnect& conn, const std::string cmd_line)
     std::string cmd_t, cmd_m;
     iss >> cmd_t >> cmd_m;
     std::string name;
+    // std::cout << "cmd_execute" << std::endl;
     if(cmd_t == "USER")
     USER(conn, cmd_m);
     else if(cmd_t == "PASS")
@@ -86,12 +87,14 @@ void command::LIST(FTPconnect& conn, const std::string& path)
 void command::RETR(FTPconnect& conn, const std::string& path)
 {
     if(!Login(conn)) return;
+    // std::cout << "retr" << std::endl;
     conn.data_conn->send_file(path, conn);
 }
 
 void command::STOR(FTPconnect& conn, const std::string& path)
 {
     if(!Login(conn)) return;
+    // std::cout << "stor" << std::endl;
     conn.data_conn->recive_file(path, conn);
 }
 
@@ -112,7 +115,7 @@ void command::PASS(FTPconnect& conn, const std::string& pass)
 
 void command::QUIT(FTPconnect& conn)
 {
-    conn.send_response("221 Goodbye.");
+    // conn.send_response("221 Goodbye.");
     std::cout << "goodbye~" << std::endl;
     conn.Close();
 }
