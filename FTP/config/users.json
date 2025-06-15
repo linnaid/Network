@@ -1,22 +1,20 @@
 {
-    "linnaid": {
-        "password": "l20060105",
-        "home": "/home/linnaid",
-        "mode": "rw"
-    },
-    "bob": {
-        "password": "5678",
-        "home": "/home/linnaid/Task",
-        "mode": "ro"
-    },
-    "alice":{
-        "password": "0303",
-        "home": "/home/linnaid/Task/Network/FTP",
-        "mode": "rw"
-    },
-    "dipper":{
-        "password": "aboy101",
-        "home": "/home/linnaid/Task/Network/FTP",
-        "mode": "rw"
-    }
+    "users":[
+        {
+            "username":"linnaid",
+            "password": "l20060105"
+        },
+        {
+            "username":"liux",
+            "password": "0824"
+        },
+        {
+            "username":"alice",
+            "password": "0303"
+        },
+        {
+            "username":"dipper",
+            "password": "aboy101"
+        }
+    ]
 }
